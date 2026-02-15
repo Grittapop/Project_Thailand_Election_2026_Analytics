@@ -1,11 +1,7 @@
 FROM python:3.10-slim
 
-RUN pip install \
-    dagster \
-    dagster-postgres \
-    dagster-docker \
-    dbt-core \
-    dbt-trino
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Add code location code
 WORKDIR /opt/dagster/app
@@ -15,4 +11,4 @@ COPY . /opt/dagster/app
 EXPOSE 4000
 
 # CMD allows this to be overridden from run launchers or executors to execute runs and steps
-CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "definitions.py"]
+CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000","-m", "dagster_code.definitions"]

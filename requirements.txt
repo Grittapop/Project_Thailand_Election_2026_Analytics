@@ -1,0 +1,10 @@
+dagster
+dagster-postgres
+dagster-docker
+dagster-aws
+dbt-core
+dbt-trino
+pandas
+s3fs
+requests
+boto3

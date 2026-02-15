@@ -1,0 +1,87 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+
+# Virtualenv
+venv/
+.env/
+.venv/
+
+# =========================
+# Dagster
+# =========================
+dagster_home/
+.history/
+local_artifacts/
+storage/
+io_manager_storage/
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# dbt
+# =========================
+target/
+dbt_packages/
+logs/
+
+# =========================
+# Docker
+# =========================
+*.log
+docker-compose.override.yml
+.env
+.env.*
+!example.env
+
+# =========================
+# Trino / Iceberg runtime
+# =========================
+trino/data/
+trino/var/
+data/
+*.pid
+
+# =========================
+# MinIO data
+# =========================
+minio_data/
+minio/
+*.parquet
+*.orc
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/

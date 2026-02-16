@@ -5,14 +5,16 @@ from datetime import datetime
 from dagster import asset
 
 
-API_URL = "https://static-ectreport69.ect.go.th/data/data/refs/info_province.json"
+API_URL = "https://static-ectreport69.ect.go.th/data/data/refs/info_constituency.json"
 BUCKET_NAME = "thailand-election2026"
 
 
-@asset(required_resource_keys={"s3"})
-def bronze_province(context):
+@asset(required_resource_keys={"s3"},
+       group_name="bronze",
+)
+def bronze_constituency(context):
     """
-    Bronze layer - Province (Raw JSON)
+    Bronze layer - Constituency (Raw JSON)
     """
 
     # 1️⃣ Call API
@@ -30,7 +32,7 @@ def bronze_province(context):
 
     record = {
         "metadata": {
-            "dataset": "province",
+            "dataset": "constituency",
             "ingestion_timestamp": now.isoformat() + "Z",
             "source": API_URL,
             "status_code": response.status_code,
@@ -41,7 +43,7 @@ def bronze_province(context):
 
     # 3️⃣ S3 Path
     file_key = (
-        f"bronze/election_api/province/"
+        f"bronze/election_api/constituency/"
         f"ingestion_date={ingestion_date}/"
         f"{filename}"
     )
@@ -59,4 +61,3 @@ def bronze_province(context):
     context.log.info(f"Saved to s3://{BUCKET_NAME}/{file_key}")
 
     return file_key
-

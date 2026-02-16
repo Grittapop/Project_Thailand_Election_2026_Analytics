@@ -5,14 +5,16 @@ from datetime import datetime
 from dagster import asset
 
 
-API_URL = "https://static-ectreport69.ect.go.th/data/data/refs/info_mp_candidate.json"
+API_URL = "https://static-ectreport69.ect.go.th/data/data/refs/info_party_overview.json"
 BUCKET_NAME = "thailand-election2026"
 
 
-@asset(required_resource_keys={"s3"})
-def bronze_mp_candidate(context):
+@asset(required_resource_keys={"s3"},
+       group_name="bronze",
+)
+def bronze_party(context):
     """
-    Bronze layer - MP Candidate (Raw JSON)
+    Bronze layer - Party (Raw JSON)
     """
 
     # 1️⃣ Call API
@@ -30,7 +32,7 @@ def bronze_mp_candidate(context):
 
     record = {
         "metadata": {
-            "dataset": "mp_candidate",
+            "dataset": "party",
             "ingestion_timestamp": now.isoformat() + "Z",
             "source": API_URL,
             "status_code": response.status_code,
@@ -41,7 +43,7 @@ def bronze_mp_candidate(context):
 
     # 3️⃣ S3 Path
     file_key = (
-        f"bronze/election_api/mp_candidate/"
+        f"bronze/election_api/party/"
         f"ingestion_date={ingestion_date}/"
         f"{filename}"
     )

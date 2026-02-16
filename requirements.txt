@@ -8,3 +8,4 @@ pandas
 s3fs
 requests
 boto3
+pyarrow

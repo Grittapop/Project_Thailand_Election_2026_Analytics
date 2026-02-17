@@ -1,9 +1,10 @@
 version: '3.7'
 
 services:
-  # This service runs the postgres DB used by dagster for run storage, schedule storage,
-  # and event log storage. Depending on the hardware you run this Compose on, you may be able
-  # to reduce the interval and timeout in the healthcheck to speed up your `docker-compose up` times.
+
+  # ---------------------------------
+  # Postgres (Dagster metadata)
+  # ---------------------------------
   docker_example_postgresql:
     image: postgres:11
     container_name: docker_example_postgresql
@@ -19,12 +20,81 @@ services:
       timeout: 8s
       retries: 5
 
-  # This service runs the gRPC server that loads your user code, in both dagster-webserver
-  # and dagster-daemon. By setting DAGSTER_CURRENT_IMAGE to its own image, we tell the
-  # run launcher to use this same image when launching runs in a new container as well.
-  # Multiple containers like this can be deployed separately - each just needs to run on
-  # its own port, and have its own entry in the workspace.yaml file that's loaded by the
-  # webserver.
+  # ---------------------------------
+  # Postgres (Iceberg JDBC catalog)
+  # ---------------------------------
+  iceberg_metastore:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres-user
+      POSTGRES_PASSWORD: postgres-password
+      POSTGRES_DB: iceberg
+    volumes:
+      - ./iceberg-setup.sql:/docker-entrypoint-initdb.d/iceberg-setup.sql
+    networks:
+      - docker_example_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres-user -d iceberg"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------
+  # MinIO (S3 storage)
+  # ---------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minio-user
+      MINIO_ROOT_PASSWORD: minio-password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: ["server", "/data", "--console-address", ":9001"]
+    networks:
+      - docker_example_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  create-bucket:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 minio-user minio-password;
+      mc mb local/thailand-election2026;
+      exit 0;
+      "
+    networks:
+      - docker_example_network
+  # ---------------------------------
+  # Trino
+  # ---------------------------------
+  trino:
+    image: trinodb/trino:479
+    container_name: trino
+    hostname: trino
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./trino/etc:/etc/trino
+    networks:
+      - docker_example_network
+    depends_on:
+      iceberg_metastore:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  # ---------------------------------
+  # Dagster user code
+  # ---------------------------------
   docker_example_user_code:
     build:
       context: .
@@ -32,27 +102,22 @@ services:
     container_name: docker_example_user_code
     image: docker_example_user_code_image
     restart: always
-    expose:
-      - "4000"
     environment:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
       DAGSTER_CURRENT_IMAGE: 'docker_example_user_code_image'
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      TRINO_HOST: trino
+      TRINO_PORT: 8080
     networks:
       - docker_example_network
-    working_dir: /opt/dagster/app
-    volumes:
-      - .:/opt/dagster/app
     depends_on:
-      - trino
-      - minio
-  # This service runs dagster-webserver, which loads your user code from the user code container.
-  # Since our instance uses the QueuedRunCoordinator, any runs submitted from the webserver will be put on
-  # a queue and later dequeued and launched by dagster-daemon.
+      trino:
+        condition: service_started
+
+  # ---------------------------------
+  # Dagster Webserver
+  # ---------------------------------
   docker_example_webserver:
     build:
       context: .
@@ -66,24 +131,26 @@ services:
       - -w
       - workspace.yaml
     container_name: docker_example_webserver
-    expose:
-      - '3000'
     ports:
       - '3000:3000'
     environment:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-    volumes: # Make docker client accessible so we can terminate containers from the webserver
+    volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - .:/opt/dagster/app
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
     networks:
       - docker_example_network
     depends_on:
-      - docker_example_postgresql
-      - docker_example_user_code
-  # This service runs the dagster-daemon process, which is responsible for taking runs
-  # off of the queue and launching them, as well as creating runs from schedules or sensors.
+      docker_example_postgresql:
+        condition: service_healthy
+      docker_example_user_code:
+        condition: service_started
+
+  # ---------------------------------
+  # Dagster Daemon
+  # ---------------------------------
   docker_example_daemon:
     build:
       context: .
@@ -97,54 +164,18 @@ services:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
-    volumes: # Make docker client accessible so we can launch containers using host docker
+    volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
-      - .:/opt/dagster/app
     networks:
       - docker_example_network
     depends_on:
-      - docker_example_postgresql
-      - docker_example_user_code
-  trino:
-    image: trinodb/trino:479
-    container_name: trino-server
-    user: root
-    networks:
-      - docker_example_network
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./trino/etc:/etc/trino
-      - ./trino/data:/data/trino
-  hive-metastore:
-    image: apache/hive:3.1.3
-    container_name: docker_example_hive_metastore
-    networks:
-      - docker_example_network
-    environment:
-      SERVICE_NAME: metastore
-    ports:
-      - "9083:9083"
-  minio:
-    image: minio/minio
-    container_name: docker_example_minio
-    networks:
-      - docker_example_network
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio-data:/data
+      docker_example_postgresql:
+        condition: service_healthy
+      docker_example_user_code:
+        condition: service_started
 
 networks:
   docker_example_network:
     driver: bridge
     name: docker_example_network
-
-volumes:
-  minio-data:

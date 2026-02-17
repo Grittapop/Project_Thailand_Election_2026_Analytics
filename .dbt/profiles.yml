@@ -1,0 +1,12 @@
+election_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      method: none
+      host: trino-server
+      port: 8080
+      user: trino
+      catalog: minio_iceberg
+      schema: silver
+      threads: 4

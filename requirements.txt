@@ -1,7 +1,6 @@
 dagster
 dagster-postgres
 dagster-docker
-dagster-aws
 dagster-dbt
 dbt-core
 dbt-trino

@@ -4,16 +4,17 @@ import uuid
 from datetime import datetime
 from dagster import asset
 
-API_URL = "https://stats-ectreport69.ect.go.th/data/records/stats_party.json"
+
+API_URL = "https://static-ectreport69.ect.go.th/data/data/refs/info_party_overview.json"
 BUCKET_NAME = "thailand-election2026"
 
 
 @asset(required_resource_keys={"s3"},
        group_name="bronze",
 )
-def bronze_stats_party(context):
+def raw_party(context):
     """
-    Bronze layer - Stats Party (Raw JSON)
+    Bronze layer - Party (Raw JSON)
     """
 
     # 1️⃣ Call API
@@ -31,7 +32,7 @@ def bronze_stats_party(context):
 
     record = {
         "metadata": {
-            "dataset": "stats_party",
+            "dataset": "party",
             "ingestion_timestamp": now.isoformat() + "Z",
             "source": API_URL,
             "status_code": response.status_code,
@@ -42,7 +43,7 @@ def bronze_stats_party(context):
 
     # 3️⃣ S3 Path
     file_key = (
-        f"bronze/election_api/stats_party/"
+        f"bronze/election_api/party/"
         f"ingestion_date={ingestion_date}/"
         f"{filename}"
     )

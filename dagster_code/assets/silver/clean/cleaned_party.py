@@ -1,0 +1,78 @@
+import json
+import pandas as pd
+from dagster import asset
+from datetime import datetime
+
+BUCKET = "thailand-election2026"
+BRONZE_PREFIX = "bronze/election_api/party/"
+
+
+@asset(
+    required_resource_keys={"s3"},
+    group_name="silver",
+)
+def cleaned_party(context, raw_party):
+
+    s3 = context.resources.s3
+
+    # -------------------------------------------------
+    # 1️⃣ Read latest bronze file
+    # -------------------------------------------------
+    paginator = s3.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
+
+    keys = [
+        obj["Key"]
+        for page in pages
+        for obj in page.get("Contents", [])
+        if obj["Key"].endswith(".json")
+    ]
+
+    if not keys:
+        raise Exception("No bronze party files found")
+
+    latest_key = sorted(keys)[-1]
+    context.log.info(f"Reading bronze file: {latest_key}")
+
+    obj = s3.get_object(Bucket=BUCKET, Key=latest_key)
+    data = json.loads(obj["Body"].read())
+
+    df = pd.DataFrame(data.get("payload", []))
+
+    if df.empty:
+        context.log.info("No rows found in payload")
+        return pd.DataFrame()
+
+    # -------------------------------------------------
+    # 2️⃣ Transform
+    # -------------------------------------------------
+    df = df.rename(columns={
+        "id": "party_id",
+        "name": "party_name",
+        "abbr": "party_abbr",
+        "color": "party_color",
+    })
+
+    df["party_id"] = pd.to_numeric(df.get("party_id"), errors="coerce")
+    df["party_no"] = pd.to_numeric(df.get("party_no"), errors="coerce")
+
+    ingestion_date = datetime.utcnow().date()
+    df["ingestion_date"] = ingestion_date
+
+    df = df[
+        [
+            "party_id",
+            "party_no",
+            "party_name",
+            "party_abbr",
+            "party_color",
+            "logo_url",
+            "ingestion_date",
+        ]
+    ]
+
+    df = df.where(pd.notnull(df), None)
+
+    context.log.info(f"Cleaned {len(df)} rows")
+
+    return df

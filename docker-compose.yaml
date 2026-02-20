@@ -30,7 +30,7 @@ services:
       POSTGRES_PASSWORD: postgres-password
       POSTGRES_DB: iceberg
     volumes:
-      - ./iceberg-setup.sql:/docker-entrypoint-initdb.d/iceberg-setup.sql
+      - ./infra/sql/iceberg-catalog-setup.sql:/docker-entrypoint-initdb.d/iceberg-catalog-setup.sql
     networks:
       - docker_example_network
     healthcheck:
@@ -93,6 +93,32 @@ services:
         condition: service_healthy
 
   # ---------------------------------
+  # Iceberg Migration (Create Tables)
+  # ---------------------------------
+  migration:
+    image: trinodb/trino:479
+    container_name: iceberg_migration
+    networks:
+      - docker_example_network
+    depends_on:
+      trino:
+        condition: service_healthy
+      create-bucket:
+        condition: service_completed_successfully
+    volumes:
+      - ./infra/sql:/migrations
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for Trino...';
+      until curl -s http://trino:8080/v1/info > /dev/null; do
+        sleep 3;
+      done;
+      echo 'Running Iceberg migration...';
+      trino --server http://trino:8080 --file /migrations/silver-iceberg-table-setup.sql;
+      echo 'Migration done.';
+      "
+  
+  # ---------------------------------
   # Dagster user code
   # ---------------------------------
   docker_example_user_code:
@@ -102,6 +128,8 @@ services:
     container_name: docker_example_user_code
     image: docker_example_user_code_image
     restart: always
+    env_file:
+      - .env
     environment:
       DAGSTER_POSTGRES_USER: 'postgres_user'
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'

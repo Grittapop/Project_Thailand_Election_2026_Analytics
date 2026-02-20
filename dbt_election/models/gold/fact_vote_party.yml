@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: fact_vote_party
+    columns:
+
+      - name: party_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_party')
+              field: party_id

@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: fact_vote_constituency
+    columns:
+
+      - name: constituency_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_constituency')
+              field: constituency_id
+
+
+  - name: dim_candidate
+    columns:
+  
+      - name: party_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_party')
+              field: party_id
+
+  - name: dim_constituency
+    columns:
+
+      - name: prov_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_province')
+              field: prov_id

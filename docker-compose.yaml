@@ -114,7 +114,7 @@ services:
         sleep 3;
       done;
       echo 'Running Iceberg migration...';
-      trino --server http://trino:8080 --file /migrations/silver-iceberg-table-setup.sql;
+      trino --server http://trino:8080 --file /migrations/iceberg-table-setup.sql;
       echo 'Migration done.';
       "
   
@@ -139,6 +139,8 @@ services:
       TRINO_PORT: 8080
     networks:
       - docker_example_network
+    volumes:
+      - .:/opt/dagster/app
     depends_on:
       trino:
         condition: service_started

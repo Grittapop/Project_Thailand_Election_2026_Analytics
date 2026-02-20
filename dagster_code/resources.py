@@ -2,6 +2,9 @@ import os
 import boto3
 import trino
 from dagster import resource
+from pathlib import Path
+from dagster_dbt import DbtCliResource
+
 
 
 @resource
@@ -22,4 +25,10 @@ def trino_resource(_):
         user="admin",
         catalog="iceberg",
         schema="silver",
+    )
+
+@resource
+def dbt():
+    return DbtCliResource(
+        project_dir="/opt/dagster/app/dbt_election",
     )

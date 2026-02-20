@@ -37,7 +37,7 @@ def ods_stats_cons(context, cleaned_stats_cons):
     try:
         # Idempotent delete
         cursor.execute(f"""
-            DELETE FROM iceberg.silver.fact_vote_constituency_candidate
+            DELETE FROM iceberg.silver.ods_stats_cons
             WHERE ingestion_date = DATE '{ingestion_date}'
         """)
 
@@ -58,7 +58,7 @@ def ods_stats_cons(context, cleaned_stats_cons):
             )
 
             sql = f"""
-                INSERT INTO iceberg.silver.fact_vote_constituency_candidate
+                INSERT INTO iceberg.silver.ods_stats_cons
                 VALUES {values_sql}
             """
 

@@ -49,7 +49,7 @@ def cleaned_constituency(context, raw_constituency):
     df = df.rename(columns={
         "cons_id": "constituency_id",
         "cons_no": "constituency_no",
-        "prov_id": "province_id",
+        "prov_id": "prov_id",
     })
 
     df["constituency_no"] = (
@@ -84,7 +84,7 @@ def cleaned_constituency(context, raw_constituency):
         [
             "constituency_id",
             "constituency_no",
-            "province_id",
+            "prov_id",
             "zone",
             "total_vote_stations",
             "registered_vote",

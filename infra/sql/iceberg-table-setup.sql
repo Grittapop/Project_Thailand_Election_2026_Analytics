@@ -1,10 +1,10 @@
 CREATE SCHEMA IF NOT EXISTS iceberg.silver;
-
+CREATE SCHEMA IF NOT EXISTS iceberg.gold;
 
 CREATE TABLE IF NOT EXISTS iceberg.silver.ods_constituency (
     constituency_id VARCHAR,
     constituency_no INTEGER,
-    province_id VARCHAR,
+    prov_id VARCHAR,
     zone VARCHAR,
     total_vote_stations INTEGER,
     registered_vote INTEGER,
@@ -72,7 +72,7 @@ WITH (
 );
 
 
-CREATE TABLE IF NOT EXISTS iceberg.silver.fact_vote_constituency_candidate (
+CREATE TABLE IF NOT EXISTS iceberg.silver.ods_stats_cons (
     constituency_id VARCHAR,
     province_id VARCHAR,
     party_id INTEGER,

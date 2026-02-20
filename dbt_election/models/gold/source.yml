@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: silver
+    database: iceberg
+    schema: silver
+    tables:
+    - name: ods_constituency
+    - name: ods_mp_candidate
+    - name: ods_party_candidate
+    - name: ods_party
+    - name: ods_province
+    - name: ods_stats_cons
+    - name: ods_stats_party
+

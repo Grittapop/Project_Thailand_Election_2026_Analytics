@@ -1,26 +1,3 @@
-WITH base AS (
-
-    SELECT
-        *
-    FROM 
-        {{ source('silver', 'ods_stats_party') }}
-
-),
-
-joined AS (
-
-    SELECT
-        b.*,
-        d.party_id as dim_party_id
-    FROM 
-        base b
-    LEFT JOIN 
-        {{ ref('dim_party') }} d
-    ON 
-        b.party_id = d.party_id
-
-)
-
 SELECT
     coalesce(dim_party_id, -1) as party_id,
     party_vote,
@@ -32,4 +9,4 @@ SELECT
     percent_count
 
 FROM 
-    joined
+    {{ ref('int_stats_party_join_party') }}

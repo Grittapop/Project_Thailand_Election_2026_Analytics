@@ -1,4 +1,4 @@
-# 🇹🇭 Thailand Election 2026 Analytics  
+# Thailand Election 2026 Analytics  
 ## Modern Data Lakehouse Architecture
 
 ---

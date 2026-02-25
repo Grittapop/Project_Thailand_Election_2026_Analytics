@@ -25,7 +25,7 @@ def ods_stats_cons(context, cleaned_stats_cons):
     if df.empty:
         return "0 rows inserted"
 
-    # 🔥 กัน NaN อีกรอบ (double safety)
+    # Double safety protection against NaN (double safety)
     df = df.where(df.notnull(), None)
 
     trino = context.resources.trino

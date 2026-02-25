@@ -15,9 +15,7 @@ def cleaned_party(context, raw_party):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Read latest bronze file
-    # -------------------------------------------------
+    # Read latest bronze file
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -43,9 +41,7 @@ def cleaned_party(context, raw_party):
         context.log.info("No rows found in payload")
         return pd.DataFrame()
 
-    # -------------------------------------------------
-    # 2️⃣ Transform
-    # -------------------------------------------------
+    # Transform
     df = df.rename(columns={
         "id": "party_id",
         "name": "party_name",

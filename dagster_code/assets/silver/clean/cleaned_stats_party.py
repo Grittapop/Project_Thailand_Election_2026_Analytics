@@ -29,9 +29,7 @@ def cleaned_stats_party(context, raw_stats_party):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Read latest bronze file
-    # -------------------------------------------------
+    # Read latest bronze file
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -57,9 +55,7 @@ def cleaned_stats_party(context, raw_stats_party):
     percent_count = safe_float(payload.get("percent_count"))
     result_party = payload.get("result_party", [])
 
-    # -------------------------------------------------
-    # 2️⃣ Flatten
-    # -------------------------------------------------
+    # Flatten
     rows = []
 
     for party in result_party:

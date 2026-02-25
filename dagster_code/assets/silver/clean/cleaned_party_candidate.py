@@ -22,9 +22,7 @@ def cleaned_party_candidate(context, raw_party_candidate):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Read latest bronze JSON
-    # -------------------------------------------------
+    # Read latest bronze JSON
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -45,9 +43,7 @@ def cleaned_party_candidate(context, raw_party_candidate):
     data = json.loads(obj["Body"].read())
     payload = data.get("payload", [])
 
-    # -------------------------------------------------
-    # 2️⃣ Flatten
-    # -------------------------------------------------
+    # Flatten
     rows = []
 
     for party in payload:

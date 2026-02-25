@@ -16,12 +16,12 @@ def raw_stats_cons(context):
     Bronze layer - Stats Constituency (Raw JSON)
     """
 
-    # 1️⃣ Call API
+    # Call API
     response = requests.get(API_URL, timeout=30)
     response.raise_for_status()
     payload = response.json()
 
-    # 2️⃣ Metadata
+    # Metadata
     now = datetime.utcnow()
     ingestion_date = now.strftime("%Y-%m-%d")
     timestamp_str = now.strftime("%Y%m%dT%H%M%S")
@@ -40,14 +40,14 @@ def raw_stats_cons(context):
         "payload": payload,
     }
 
-    # 3️⃣ S3 Path
+    # S3 Path
     file_key = (
         f"bronze/election_api/stats_cons/"
         f"ingestion_date={ingestion_date}/"
         f"{filename}"
     )
 
-    # 4️⃣ Upload
+    # Upload
     s3 = context.resources.s3
 
     s3.put_object(

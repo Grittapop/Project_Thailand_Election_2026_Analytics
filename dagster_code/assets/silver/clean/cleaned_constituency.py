@@ -15,9 +15,7 @@ def cleaned_constituency(context, raw_constituency):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Read Latest Bronze JSON
-    # -------------------------------------------------
+    # Read Latest Bronze JSON
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -43,9 +41,7 @@ def cleaned_constituency(context, raw_constituency):
         context.log.info("No rows found in payload")
         return pd.DataFrame()
 
-    # -------------------------------------------------
-    # 2️⃣ Transform
-    # -------------------------------------------------
+    # Transform
     df = df.rename(columns={
         "cons_id": "constituency_id",
         "cons_no": "constituency_no",

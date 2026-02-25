@@ -1,10 +1,7 @@
 version: '3.7'
 
 services:
-
-  # ---------------------------------
   # Postgres (Dagster metadata)
-  # ---------------------------------
   docker_example_postgresql:
     image: postgres:11
     container_name: docker_example_postgresql
@@ -20,9 +17,7 @@ services:
       timeout: 8s
       retries: 5
 
-  # ---------------------------------
   # Postgres (Iceberg JDBC catalog)
-  # ---------------------------------
   iceberg_metastore:
     image: postgres:15-alpine
     environment:
@@ -39,9 +34,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ---------------------------------
   # MinIO (S3 storage)
-  # ---------------------------------
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -73,9 +66,8 @@ services:
       "
     networks:
       - docker_example_network
-  # ---------------------------------
+
   # Trino
-  # ---------------------------------
   trino:
     image: trinodb/trino:479
     container_name: trino
@@ -92,9 +84,7 @@ services:
       minio:
         condition: service_healthy
 
-  # ---------------------------------
   # Iceberg Migration (Create Tables)
-  # ---------------------------------
   migration:
     image: trinodb/trino:479
     container_name: iceberg_migration
@@ -118,9 +108,7 @@ services:
       echo 'Migration done.';
       "
   
-  # ---------------------------------
   # Dagster user code
-  # ---------------------------------
   docker_example_user_code:
     build:
       context: .
@@ -145,9 +133,7 @@ services:
       trino:
         condition: service_started
 
-  # ---------------------------------
   # Dagster Webserver
-  # ---------------------------------
   docker_example_webserver:
     build:
       context: .
@@ -178,9 +164,7 @@ services:
       docker_example_user_code:
         condition: service_started
 
-  # ---------------------------------
   # Dagster Daemon
-  # ---------------------------------
   docker_example_daemon:
     build:
       context: .

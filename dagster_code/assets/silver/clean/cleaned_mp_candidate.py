@@ -15,9 +15,7 @@ def cleaned_mp_candidate(context, raw_mp_candidate):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Load Bronze
-    # -------------------------------------------------
+    # Load Bronze
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -42,9 +40,7 @@ def cleaned_mp_candidate(context, raw_mp_candidate):
         context.log.info("No rows found in payload")
         return pd.DataFrame()
 
-    # -------------------------------------------------
-    # 2️⃣ Transform
-    # -------------------------------------------------
+    # Transform
     df = df.rename(columns={
         "mp_app_id": "mp_candidate_id",
         "mp_app_no": "candidate_no",

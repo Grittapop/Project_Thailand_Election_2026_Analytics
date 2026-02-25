@@ -15,9 +15,7 @@ def cleaned_province(context, raw_province):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Read latest bronze file
-    # -------------------------------------------------
+    # Read latest bronze file
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -45,9 +43,7 @@ def cleaned_province(context, raw_province):
 
     df = pd.DataFrame(provinces)
 
-    # -------------------------------------------------
-    # 2️⃣ Transform
-    # -------------------------------------------------
+    # Transform
     df = df[
         [
             "province_id",

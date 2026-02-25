@@ -29,9 +29,7 @@ def cleaned_stats_cons(context, raw_stats_cons):
 
     s3 = context.resources.s3
 
-    # -------------------------------------------------
-    # 1️⃣ Read latest bronze file
-    # -------------------------------------------------
+    # Read latest bronze file
     paginator = s3.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=BUCKET, Prefix=BRONZE_PREFIX)
 
@@ -55,9 +53,7 @@ def cleaned_stats_cons(context, raw_stats_cons):
 
     rows = []
 
-    # -------------------------------------------------
-    # 2️⃣ Flatten
-    # -------------------------------------------------
+    # Flatten
     for province in provinces:
 
         prov_raw = province.get("prov_id")
@@ -96,11 +92,11 @@ def cleaned_stats_cons(context, raw_stats_cons):
 
     df = pd.DataFrame(rows)
 
-    # ✅ add ingestion_date
+    # add ingestion_date
     ingestion_date = datetime.utcnow().date()
     df["ingestion_date"] = ingestion_date
 
-    # ✅ enforce column order (กัน order เพี้ยนตอน insert)
+    # enforce column order (กัน order เพี้ยนตอน insert)
     df = df[
         [
             "constituency_id",
@@ -118,7 +114,7 @@ def cleaned_stats_cons(context, raw_stats_cons):
         ]
     ]
 
-    # 🔥 สำคัญมาก: แปลง NaN → None กัน Trino error
+    # The NaN → None format prevents Trino errors
     df = df.where(pd.notnull(df), None)
 
     context.log.info(f"Cleaned {len(df)} rows")

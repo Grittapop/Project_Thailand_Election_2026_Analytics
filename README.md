@@ -204,7 +204,8 @@ The goal of this page is clarity, speed, and strategic insight.
 ## 🗺 Geographic Analysis (Province & Constituency Level)
 
 
-![Screenshot 2026-02-26 032432](https://github.com/user-attachments/assets/c840b5fb-87bc-45e7-8dc6-88816d1d1493)
+![Screenshot 2026-02-26 032432](https://github.com/user-attachments/assets/872c6beb-5a8e-4cca-9e3e-419418b58f1f)
+
 
 
 The Geographic Analysis report provides a regional breakdown of election performance.
